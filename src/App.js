@@ -1,28 +1,37 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import './App.css';
+import { fetchPosts } from './actions/postAction';
 
 class App extends Component {
+  componentWillMount() {
+    this.props.fetchPosts();
+  }
+
   render() {
+    console.log(this.props.posts);
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+        {this.props.posts.map(post => (
+          <div key={post.id}>
+            <h3>{post.title}</h3>
+            <h6>{post.category}</h6>
+            <p>{post.body}</p>
+          </div>
+        ))}
       </div>
     );
   }
 }
 
-export default App;
+const mapStateToProps = state => ({
+  posts: state.posts.items
+});
+
+App.propTypes = {
+  fetchPosts: PropTypes.func.isRequired,
+  posts: PropTypes.array.isRequired
+}
+
+export default connect(mapStateToProps, { fetchPosts })(App);
