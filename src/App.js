@@ -3,16 +3,22 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import './App.css';
 import { fetchPosts } from './actions/postAction';
+import { fetchCategories } from './actions/categoryAction';
 
 class App extends Component {
   componentWillMount() {
+    this.props.fetchCategories();
     this.props.fetchPosts();
   }
 
   render() {
-    console.log(this.props.posts);
     return (
       <div className="App">
+        {this.props.categories.map(cat => (
+          <div key={cat.path}>
+            {cat.name}
+          </div>
+        ))}
         {this.props.posts.map(post => (
           <div key={post.id}>
             <h3>{post.title}</h3>
@@ -26,12 +32,15 @@ class App extends Component {
 }
 
 const mapStateToProps = state => ({
-  posts: state.posts.items
+  posts: state.posts.items,
+  categories: state.categories.items
 });
 
 App.propTypes = {
   fetchPosts: PropTypes.func.isRequired,
-  posts: PropTypes.array.isRequired
+  fetchCategories: PropTypes.func.isRequired,
+  posts: PropTypes.array.isRequired,
+  categories: PropTypes.array.isRequired
 }
 
-export default connect(mapStateToProps, { fetchPosts })(App);
+export default connect(mapStateToProps, { fetchPosts, fetchCategories })(App);
