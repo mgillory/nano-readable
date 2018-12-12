@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { Link, Route, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import './App.css';
 import { fetchPosts } from './actions/postAction';
 import { fetchCategories } from './actions/categoryAction';
 import { sortFunction, formatDate } from './utils/helpers';
+import NewPost from './components/NewPost';
 
 class App extends Component {
   constructor(props) {
@@ -23,14 +25,20 @@ class App extends Component {
     this.setState({ value: event.target.value });
   }
 
-  render() {
-    const { posts, categories } = this.props;
-    const { value } = this.state;
+  handleClick = (e) => {
+    e.preventDefault();
+    console.log('NewPost | MODAL HERE');
+  }
+
+  renderPosts = (arr) => {
+    const { categories } = this.props;
     return (
-      <div className="App">
+      <div>
         {categories.map(cat => (
           <div key={cat.path}>
-            {cat.name}
+            <Link to={`/${cat.path}`}>
+              {cat.name}
+            </Link>
           </div>
         ))}
         <select value={this.state.value} onChange={this.handleChange}>
@@ -39,7 +47,10 @@ class App extends Component {
           <option value="date-desc">Date Descending</option>
           <option value="date-asc">Vote Ascending</option>
         </select>
-        {posts.sort(sortFunction(value)) && posts.map(post => (
+        <button onClick={this.handleClick}>
+          New Post
+        </button>
+        {arr.sort(sortFunction(this.state.value)) && arr.map(post => (
           <div key={post.id}>
             <h3>{post.title}</h3>
             <h6>{post.category}</h6>
@@ -48,6 +59,17 @@ class App extends Component {
             <p>{post.body}</p>
           </div>
         ))}
+      </div>
+    )
+  }
+
+  render() {
+    const { posts } = this.props;
+    console.log(this.props.posts);
+    return (
+      <div className="App">
+        <Route exact path="/" component={() => this.renderPosts(posts)} />
+        <Route path="/:catPath" component={({ match }) => this.renderPosts(posts.filter(post => post.category === match.params.catPath))} />
       </div>
     );
   }
@@ -65,4 +87,4 @@ App.propTypes = {
   categories: PropTypes.array.isRequired
 }
 
-export default connect(mapStateToProps, { fetchPosts, fetchCategories })(App);
+export default withRouter(connect(mapStateToProps, { fetchPosts, fetchCategories })(App));
