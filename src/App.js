@@ -1,23 +1,28 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link, Route, withRouter } from 'react-router-dom';
+import {
+  Card, Button, CardSubtitle, CardBody,
+  CardTitle, CardText
+} from 'reactstrap';
 import PropTypes from 'prop-types';
 import './App.css';
 import { fetchPosts } from './actions/postAction';
-import { fetchCategories } from './actions/categoryAction';
 import { sortFunction, formatDate } from './utils/helpers';
-import NewPost from './components/NewPost';
+import Header from './components/Header';
+import PostDetail from './components/PostDetail';
+import PostCard from './components/PostCard';
 
 class App extends Component {
   constructor(props) {
     super(props);
+    this.post = {};
     this.state = {
       value: 'vote-desc'
     }
   }
 
   componentWillMount() {
-    this.props.fetchCategories();
     this.props.fetchPosts();
   }
 
@@ -30,17 +35,13 @@ class App extends Component {
     console.log('NewPost | MODAL HERE');
   }
 
+  onDetails = (post) => {
+    this.post = post;
+  }
+
   renderPosts = (arr) => {
-    const { categories } = this.props;
     return (
       <div>
-        {categories.map(cat => (
-          <div key={cat.path}>
-            <Link to={`/${cat.path}`}>
-              {cat.name}
-            </Link>
-          </div>
-        ))}
         <select value={this.state.value} onChange={this.handleChange}>
           <option value="vote-desc">Vote Descending</option>
           <option value="vote-asc">Vote Ascending</option>
@@ -51,13 +52,7 @@ class App extends Component {
           New Post
         </button>
         {arr.sort(sortFunction(this.state.value)) && arr.map(post => (
-          <div key={post.id}>
-            <h3>{post.title}</h3>
-            <h6>{post.category}</h6>
-            <p>Vote Score: {post.voteScore}</p>
-            <p>Date: {formatDate(post.timestamp)}</p>
-            <p>{post.body}</p>
-          </div>
+          <PostCard key={post.id} post={post} onClick={this.onDetails} />
         ))}
       </div>
     )
@@ -68,8 +63,12 @@ class App extends Component {
     console.log(this.props.posts);
     return (
       <div className="App">
+        <Header />
         <Route exact path="/" component={() => this.renderPosts(posts)} />
-        <Route path="/:catPath" component={({ match }) => this.renderPosts(posts.filter(post => post.category === match.params.catPath))} />
+        <Route exact path="/:catPath" component={({ match }) => this.renderPosts(posts.filter(post => post.category === match.params.catPath))} />
+        <Route exact path="/:catPath/:postId" render={() => (
+          <PostDetail post={this.post} />
+        )} />
       </div>
     );
   }
@@ -77,14 +76,11 @@ class App extends Component {
 
 const mapStateToProps = state => ({
   posts: state.posts.items,
-  categories: state.categories.items
 });
 
 App.propTypes = {
   fetchPosts: PropTypes.func.isRequired,
-  fetchCategories: PropTypes.func.isRequired,
   posts: PropTypes.array.isRequired,
-  categories: PropTypes.array.isRequired
 }
 
-export default withRouter(connect(mapStateToProps, { fetchPosts, fetchCategories })(App));
+export default withRouter(connect(mapStateToProps, { fetchPosts })(App));
